@@ -10,16 +10,138 @@ import {
 
 import { GrammarNode } from "./types";
 import { GRAMMAR_DATA } from "./constants";
+import "./index.css";
+
+/**
+ * Full App.tsx — copy & paste vào src/App.tsx
+ *
+ * Notes:
+ * - index.css must include styles for .app-container, .sidebar, .main-content (see provided CSS).
+ * - GRAMMAR_DATA and GrammarNode are imported from your constants/types files.
+ */
+
+const SidebarItem: React.FC<{
+  node: GrammarNode;
+  onClick: (n: GrammarNode) => void;
+}> = ({ node, onClick }) => {
+  return (
+    <button
+      onClick={() => onClick(node)}
+      className="w-full text-left p-3 mb-3 rounded-lg border border-gray-100 hover:shadow-sm transition"
+    >
+      <h4 className="font-semibold text-sm">{node.shortLabel}</h4>
+      <p className="text-xs text-gray-500 mt-1">{node.description}</p>
+    </button>
+  );
+};
+
+const DetailModal: React.FC<{ node: GrammarNode; onClose: () => void }> = ({
+  node,
+  onClose,
+}) => {
+  useEffect(() => {
+    // lock body scroll while modal open
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="p-6 bg-gray-900 text-white flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="bg-white p-2 rounded-2xl">
+              <BookOpen className="w-8 h-8 text-gray-900" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">{node.label}</h2>
+              <p className="text-white/80 text-sm">{node.shortLabel}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/20 rounded-full transition"
+            aria-label="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto space-y-6 flex-1">
+          {node.details.map((detail, idx) => (
+            <div key={idx} className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-1 h-6 rounded-full bg-gray-200" />
+                <h3 className="font-bold text-gray-800 text-lg">{detail.title}</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Quy tắc
+                  </h4>
+                  <ul className="space-y-2">
+                    {detail.content.map((rule, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                        <span>{rule}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-gray-100">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Ví dụ
+                  </h4>
+                  {detail.examples && detail.examples.length > 0 ? (
+                    <ul className="space-y-2">
+                      {detail.examples.map((ex, ei) => (
+                        <li
+                          key={ei}
+                          className="italic text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg"
+                        >
+                          “{ex}”
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-400">Không có ví dụ.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-6 border-t bg-gray-50 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition"
+          >
+            Đóng lại
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function App() {
-  /* ===== Hooks (PHẢI Ở TRÊN) ===== */
+  // All hooks at top
   const [page, setPage] = useState<"menu" | "app">("menu");
   const [openMenu, setOpenMenu] = useState(true);
 
-  // App 2 state
-  const [activeNode, setActiveNode] = useState<GrammarNode | null>(null);
+  // App 2 hooks
   const [searchTerm, setSearchTerm] = useState("");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [activeNode, setActiveNode] = useState<GrammarNode | null>(null);
 
   const filteredNodes = useMemo(() => {
     if (!searchTerm) return GRAMMAR_DATA;
@@ -34,24 +156,11 @@ export default function App() {
     );
   }, [searchTerm]);
 
-  /* ===== Lock body scroll when modal open ===== */
-  useEffect(() => {
-    if (activeNode) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [activeNode]);
-
-  /* ===== MENU PAGE (ACCORDION) ===== */
+  // MENU / ACCORDION page
   if (page === "menu") {
     return (
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border">
-          {/* Accordion header */}
           <div
             onClick={() => setOpenMenu(!openMenu)}
             className="cursor-pointer flex items-center justify-between px-6 py-4 border-b hover:bg-gray-50 transition"
@@ -81,13 +190,12 @@ export default function App() {
     );
   }
 
-  /* ===== APP 2 MAIN ===== */
+  // APP 2 layout
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-white">
-      {/* Top header */}
+    <div className="min-h-screen">
+      {/* Top header with back pill and small icon */}
       <div className="w-full bg-white border-b">
         <div className="max-w-7xl mx-auto px-6 py-4 relative">
-          {/* Back pill - absolute so it can overlap left area */}
           <button
             onClick={() => setPage("menu")}
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-white shadow-md px-4 py-2 rounded-lg flex items-center gap-2 font-medium z-30"
@@ -95,7 +203,6 @@ export default function App() {
             ← Quay lại
           </button>
 
-          {/* Center: only icon (we removed the "WordForm Master" text per request) */}
           <div className="text-center">
             <div className="inline-flex items-center gap-3">
               <div className="bg-gray-900 p-2 rounded-md text-white">
@@ -104,7 +211,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* mobile menu icon (right) */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -116,29 +222,23 @@ export default function App() {
         </div>
       </div>
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed md:sticky top-0 left-0 h-screen w-80 bg-white border-r z-40 transition-transform duration-300
-          ${isSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
-        `}
-      >
-        <div className="h-full flex flex-col">
-          <div className="p-6 border-b flex justify-between items-center">
+      {/* Main app container (sidebar + main content) */}
+      <div className="app-container">
+        {/* Sidebar */}
+        <aside
+          className={`sidebar ${isSidebarOpen ? "open" : ""}`}
+          aria-hidden={isSidebarOpen ? "false" : "true"}
+        >
+          <div className="mb-4">
             <div className="flex items-center gap-3">
               <div className="bg-gray-900 p-2 rounded-xl text-white shadow-lg">
                 <BookOpen className="w-6 h-6" />
               </div>
-              {/* No text label here per request */}
+              {/* no title text per user request */}
             </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <X className="w-6 h-6" />
-            </button>
           </div>
 
-          <div className="p-4 border-b">
+          <div className="mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -151,20 +251,20 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Mục lục kiến thức</h2>
+          <div>
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">
+              Mục lục kiến thức
+            </h3>
+
             {filteredNodes.map((node) => (
-              <button
+              <SidebarItem
                 key={node.type}
-                onClick={() => {
-                  setActiveNode(node);
+                node={node}
+                onClick={(n) => {
+                  setActiveNode(n);
                   setSidebarOpen(false);
                 }}
-                className="w-full text-left p-4 rounded-xl border-2 border-gray-100 hover:shadow-md transition"
-              >
-                <h3 className="font-bold text-sm">{node.shortLabel}</h3>
-                <p className="text-xs text-gray-500">{node.description}</p>
-              </button>
+              />
             ))}
 
             {filteredNodes.length === 0 && (
@@ -174,125 +274,49 @@ export default function App() {
             )}
           </div>
 
-          <div className="p-4 border-t bg-gray-50">
+          <div className="mt-auto pt-4 border-t">
             <a
               href="#"
               className="flex items-center justify-between text-xs text-gray-500 hover:text-gray-900 transition"
+              target="_blank"
+              rel="noreferrer"
             >
               <span>Xem tài liệu đầy đủ</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Main content (note padding-left so sidebar doesn't overlay content on md+) */}
-      <main className="flex-1 bg-white relative overflow-hidden flex flex-col items-center justify-start p-8 md:pl-96">
-        {/* decorative backgrounds */}
-        <div className="absolute top-8 right-8 w-64 h-64 bg-sky-50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-        <div className="absolute bottom-8 left-12 w-80 h-80 bg-rose-50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
-
-        <div className="relative z-10 text-center space-y-10 w-full max-w-5xl">
-          <div>
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight">XÁC ĐỊNH TỪ LOẠI</h2>
-            <p className="text-gray-500 mt-2">Interactive Grammar Mind Map</p>
-          </div>
-
-          {/* Grid of nodes */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-6 w-full">
-            {GRAMMAR_DATA.map((node) => (
-              <button
-                key={node.type}
-                onClick={() => setActiveNode(node)}
-                className="aspect-square flex flex-col items-center justify-center p-6 rounded-3xl border-2 hover:-translate-y-1 hover:shadow-xl transition"
-              >
-                <span className="font-bold text-xs uppercase opacity-60 mb-1">{node.type.replace("_", " ")}</span>
-                <span className="font-black text-base text-center">{node.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      {/* Detail Modal (scroll inside modal, body is flex-1 + overflow-y-auto) */}
-      {activeNode && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40"
-          aria-modal="true"
-          role="dialog"
-        >
-          <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl max-h-[90vh] flex flex-col">
-            {/* Modal header */}
-            <div className="p-6 bg-gray-900 text-white flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="bg-white p-2 rounded-2xl">
-                  <BookOpen className="w-8 h-8 text-gray-900" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold">{activeNode.label}</h2>
-                  <p className="text-white/80 text-sm">{activeNode.shortLabel}</p>
-                </div>
-              </div>
-              <button onClick={() => setActiveNode(null)} className="p-2 hover:bg-white/20 rounded-full transition">
-                <X className="w-6 h-6" />
-              </button>
+        {/* Main content */}
+        <main className="main-content">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight">
+                XÁC ĐỊNH TỪ LOẠI
+              </h2>
+              <p className="text-gray-500 mt-2">Interactive Grammar Mind Map</p>
             </div>
 
-            {/* Modal body: scrollable */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
-              {activeNode.details.map((detail, idx) => (
-                <div key={idx} className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-1 h-6 rounded-full bg-gray-200" />
-                    <h3 className="font-bold text-gray-800 text-lg">{detail.title}</h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Rules */}
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Quy tắc</h4>
-                      <ul className="space-y-2">
-                        {detail.content.map((rule, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                            <span>{rule}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Examples (if any) */}
-                    <div className="bg-white p-4 rounded-xl border border-gray-100">
-                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ví dụ</h4>
-                      {detail.examples && detail.examples.length > 0 ? (
-                        <ul className="space-y-2">
-                          {detail.examples.map((ex, ei) => (
-                            <li key={ei} className="italic text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
-                              “{ex}”
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-gray-400">Không có ví dụ.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+              {GRAMMAR_DATA.map((node) => (
+                <button
+                  key={node.type}
+                  onClick={() => setActiveNode(node)}
+                  className="aspect-square flex flex-col items-center justify-center p-6 rounded-3xl border-2 hover:-translate-y-1 hover:shadow-xl transition"
+                >
+                  <span className="font-bold text-xs uppercase opacity-60 mb-1">
+                    {node.type.replace("_", " ")}
+                  </span>
+                  <span className="font-black text-base text-center">{node.label}</span>
+                </button>
               ))}
             </div>
-
-            {/* Modal footer */}
-            <div className="p-6 border-t bg-gray-50 flex justify-end">
-              <button
-                onClick={() => setActiveNode(null)}
-                className="px-6 py-2 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition"
-              >
-                Đóng lại
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        </main>
+      </div>
+
+      {/* Detail modal */}
+      {activeNode && <DetailModal node={activeNode} onClose={() => setActiveNode(null)} />}
     </div>
   );
 }
