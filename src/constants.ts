@@ -1,109 +1,90 @@
-import { GrammarNode } from "./types";
+export const wordFormData = {
+  title: "1 XÁC ĐỊNH TỪ LOẠI",
 
-export const GRAMMAR_DATA: GrammarNode[] = [
-  {
-    type: "NOUN",
-    label: "Danh từ",
-    shortLabel: "Noun",
-    description: "Người, vật, nơi chốn, ý tưởng",
-    details: [
-      {
-        title: "Cách nhận biết",
-        content: [
-          "Danh từ thường đứng sau mạo từ (a, an, the).",
-          "Danh từ có thể thêm -s/-es để thành số nhiều.",
-          "Danh từ có thể đứng sau tính từ."
-        ],
-        examples: [
-          "She bought a book.",
-          "There are three cars.",
-          "It is a beautiful house."
-        ]
-      }
-    ]
-  },
-  {
-    type: "VERB",
-    label: "Động từ",
-    shortLabel: "Verb",
-    description: "Diễn tả hành động hoặc trạng thái",
-    details: [
-      {
-        title: "Cách nhận biết",
-        content: [
-          "Động từ thường đứng sau chủ ngữ.",
-          "Động từ chia theo thì.",
-          "Động từ có thể thêm -ing."
-        ],
-        examples: [
-          "She runs every morning.",
-          "He went to school yesterday.",
-          "They are playing football."
-        ]
-      }
-    ]
-  },
-  {
-    type: "ADJECTIVE",
-    label: "Tính từ",
-    shortLabel: "Adjective",
-    description: "Bổ nghĩa cho danh từ",
-    details: [
-      {
-        title: "Cách nhận biết",
-        content: [
-          "Tính từ đứng trước danh từ.",
-          "Tính từ đứng sau động từ to be.",
-          "Tính từ không chia theo số nhiều."
-        ],
-        examples: [
-          "She has a small dog.",
-          "The sky is blue.",
-          "They are happy."
-        ]
-      }
-    ]
-  },
-  {
-    type: "ADVERB",
-    label: "Trạng từ",
-    shortLabel: "Adverb",
-    description: "Bổ nghĩa cho động từ, tính từ",
-    details: [
-      {
-        title: "Cách nhận biết",
-        content: [
-          "Trạng từ thường kết thúc bằng -ly.",
-          "Trạng từ bổ nghĩa cho động từ.",
-          "Trạng từ có thể đứng đầu câu."
-        ],
-        examples: [
-          "She speaks slowly.",
-          "He runs quickly.",
-          "Yesterday, I met her."
-        ]
-      }
-    ]
-  },
-  {
-    type: "PRONOUN",
-    label: "Đại từ",
-    shortLabel: "Pronoun",
-    description: "Thay thế cho danh từ",
-    details: [
-      {
-        title: "Cách nhận biết",
-        content: [
-          "Đại từ thay thế cho danh từ.",
-          "Đại từ có dạng chủ ngữ và tân ngữ.",
-          "Đại từ sở hữu thể hiện sự sở hữu."
-        ],
-        examples: [
-          "She is my friend.",
-          "I saw him yesterday.",
-          "This book is mine."
-        ]
-      }
-    ]
-  }
-];
+  sections: [
+    {
+      title: "TÓM GỌN",
+      content: [
+        {
+          rule: "Sau danh từ là động từ (N + V)",
+          example: "The dog <u>runs</u> fast."
+        },
+        {
+          rule: "Sau tính từ là danh từ (Adj + N)",
+          example: "She is a <u>beautiful</u> girl."
+        },
+        {
+          rule: "Sau động từ là trạng từ (V + Adv)",
+          example: "He speaks <u>slowly</u>."
+        },
+        {
+          rule: "Sau giới từ là danh từ / V-ing (Prep + N / V-ing)",
+          example: "She is interested in <u>learning</u>."
+        }
+      ]
+    },
+
+    {
+      title: "ĐỘNG TỪ (VERB)",
+      content: [
+        {
+          rule: "Sau chủ ngữ",
+          example: "She <u>writes</u> every day."
+        },
+        {
+          rule: "Trước tân ngữ",
+          example: "She <u>reads</u> books."
+        },
+        {
+          rule: "Adv + V / V + Adv",
+          example: "He ran <u>quickly</u>."
+        }
+      ]
+    },
+
+    {
+      title: "CÔNG THỨC ĐẶC BIỆT",
+      content: [
+        {
+          rule: "begin / start + V-ing / to V",
+          example: "She started <u>studying</u>."
+        },
+        {
+          rule: "want / need / decide + to V",
+          example: "I want <u>to sleep</u>."
+        },
+        {
+          rule: "help + V / to V",
+          example: "She helped me <u>carry</u>."
+        }
+      ]
+    },
+
+    {
+      title: "ĐỘNG TỪ NỐI (LINKING VERBS)",
+      content: [
+        {
+          rule: "V + Adj",
+          example: "She feels <u>tired</u>."
+        },
+        {
+          rule: "V + O + Adj (find, keep, make...)",
+          example: "I find it <u>difficult</u>."
+        },
+        {
+          rule: "be, become, seem, feel, look, sound, taste, smell",
+          example: "The soup tastes <u>good</u>."
+        }
+      ]
+    },
+
+    {
+      title: "HẬU TỐ (KHÔNG VÍ DỤ)",
+      content: [
+        { rule: "Danh từ: -tion, -ment, -ness, -ity", example: "" },
+        { rule: "Tính từ: -ful, -less, -able, -ive", example: "" },
+        { rule: "Trạng từ: -ly", example: "" }
+      ]
+    }
+  ]
+};
