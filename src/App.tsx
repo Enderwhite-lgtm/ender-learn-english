@@ -12,14 +12,7 @@ import { GrammarNode } from "./types";
 import { GRAMMAR_DATA } from "./constants";
 import "./index.css";
 
-/**
- * Full App.tsx — copy & paste vào src/App.tsx
- *
- * Notes:
- * - index.css must include styles for .app-container, .sidebar, .main-content (see provided CSS).
- * - GRAMMAR_DATA and GrammarNode are imported from your constants/types files.
- */
-
+/* ===== Small UI pieces ===== */
 const SidebarItem: React.FC<{
   node: GrammarNode;
   onClick: (n: GrammarNode) => void;
@@ -35,15 +28,17 @@ const SidebarItem: React.FC<{
   );
 };
 
+/* ===== Detail modal (updated: rule <-> example one-to-one layout) ===== */
 const DetailModal: React.FC<{ node: GrammarNode; onClose: () => void }> = ({
   node,
   onClose,
 }) => {
   useEffect(() => {
     // lock body scroll while modal open
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = prev || "";
     };
   }, []);
 
@@ -54,6 +49,7 @@ const DetailModal: React.FC<{ node: GrammarNode; onClose: () => void }> = ({
       aria-modal="true"
     >
       <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl max-h-[90vh] flex flex-col">
+        {/* header */}
         <div className="p-6 bg-gray-900 text-white flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className="bg-white p-2 rounded-2xl">
@@ -73,6 +69,7 @@ const DetailModal: React.FC<{ node: GrammarNode; onClose: () => void }> = ({
           </button>
         </div>
 
+        {/* body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {node.details.map((detail, idx) => (
             <div key={idx} className="space-y-4">
@@ -81,45 +78,39 @@ const DetailModal: React.FC<{ node: GrammarNode; onClose: () => void }> = ({
                 <h3 className="font-bold text-gray-800 text-lg">{detail.title}</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    Quy tắc
-                  </h4>
-                  <ul className="space-y-2">
-                    {detail.content.map((rule, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                        <span>{rule}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {/* NEW: For each rule, render a 2-column row: left=rule, right=corresponding example */}
+              <div className="space-y-4">
+                {detail.content.map((rule, i) => (
+                  <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Left: rule */}
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-start gap-2 text-sm text-gray-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                      <div>{rule}</div>
+                    </div>
 
-                <div className="bg-white p-4 rounded-xl border border-gray-100">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    Ví dụ
-                  </h4>
-                  {detail.examples && detail.examples.length > 0 ? (
-                    <ul className="space-y-2">
-                      {detail.examples.map((ex, ei) => (
-                        <li
-                          key={ei}
-                          className="italic text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg"
-                        >
-                          “{ex}”
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-gray-400">Không có ví dụ.</p>
-                  )}
-                </div>
+                    {/* Right: corresponding example (one-to-one). If not present, show fallback */}
+                    <div className="bg-white p-4 rounded-xl border border-gray-100 italic text-sm text-gray-600">
+                      {detail.examples && detail.examples[i]
+                        ? `“${detail.examples[i]}”`
+                        : detail.examples && detail.examples.length > 0
+                        ? // if there are examples but index missing, show last example as fallback
+                          `“${detail.examples[detail.examples.length - 1]}”`
+                        : // final fallback: create a short example from the rule text
+                          (() => {
+                            const text = (rule || "").trim();
+                            // if rule already looks like a sentence, use it; otherwise make a sample sentence
+                            const looksLikeSentence = /[.!?]/.test(text) || text.split(" ").length > 3;
+                            return looksLikeSentence ? `“${text}”` : `“Example: ${text}.”`;
+                          })()}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
         </div>
 
+        {/* footer */}
         <div className="p-6 border-t bg-gray-50 flex justify-end">
           <button
             onClick={onClose}
@@ -133,12 +124,13 @@ const DetailModal: React.FC<{ node: GrammarNode; onClose: () => void }> = ({
   );
 };
 
+/* ===== Main App ===== */
 export default function App() {
-  // All hooks at top
+  // Hooks: must be at top
   const [page, setPage] = useState<"menu" | "app">("menu");
   const [openMenu, setOpenMenu] = useState(true);
 
-  // App 2 hooks
+  // App 2 state
   const [searchTerm, setSearchTerm] = useState("");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeNode, setActiveNode] = useState<GrammarNode | null>(null);
@@ -156,7 +148,7 @@ export default function App() {
     );
   }, [searchTerm]);
 
-  // MENU / ACCORDION page
+  // MENU
   if (page === "menu") {
     return (
       <div className="min-h-screen bg-gray-100 p-6">
@@ -190,10 +182,10 @@ export default function App() {
     );
   }
 
-  // APP 2 layout
+  // APP layout
   return (
     <div className="min-h-screen">
-      {/* Top header with back pill and small icon */}
+      {/* top header */}
       <div className="w-full bg-white border-b">
         <div className="max-w-7xl mx-auto px-6 py-4 relative">
           <button
@@ -222,9 +214,9 @@ export default function App() {
         </div>
       </div>
 
-      {/* Main app container (sidebar + main content) */}
+      {/* main container */}
       <div className="app-container">
-        {/* Sidebar */}
+        {/* sidebar */}
         <aside
           className={`sidebar ${isSidebarOpen ? "open" : ""}`}
           aria-hidden={isSidebarOpen ? "false" : "true"}
@@ -234,7 +226,6 @@ export default function App() {
               <div className="bg-gray-900 p-2 rounded-xl text-white shadow-lg">
                 <BookOpen className="w-6 h-6" />
               </div>
-              {/* no title text per user request */}
             </div>
           </div>
 
@@ -287,7 +278,7 @@ export default function App() {
           </div>
         </aside>
 
-        {/* Main content */}
+        {/* main content */}
         <main className="main-content">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-8">
@@ -315,7 +306,7 @@ export default function App() {
         </main>
       </div>
 
-      {/* Detail modal */}
+      {/* modal */}
       {activeNode && <DetailModal node={activeNode} onClose={() => setActiveNode(null)} />}
     </div>
   );
